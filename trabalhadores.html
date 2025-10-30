@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Trabalhadores</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module">
+    import { supabase } from './app.js'
+
+    let obras = []
+
+    async function carregarObras() {
+      const { data } = await supabase.from('obras').select('*')
+      obras = data
+      const select = document.getElementById('obra_id')
+      select.innerHTML = data.map(o => `<option value="${o.id}">${o.nome}</option>`).join('')
+    }
+
+    async function carregarTrabalhadores() {
+      const { data } = await supabase.from('trabalhadores').select('*, obras(nome)')
+      const tbody = document.querySelector('tbody')
+      tbody.innerHTML = data.map(t =>
+        `<tr><td>${t.nome}</td><td>${t.obra_id}</td></tr>`).join('')
+    }
+
+    async function salvarTrabalhador(e) {
+      e.preventDefault()
+      const nome = document.getElementById('nome').value
+      const obra_id = document.getElementById('obra_id').value
+      const { error } = await supabase.from('trabalhadores').insert([{ nome, obra_id }])
+      if (error) alert(error.message)
+      else {
+        e.target.reset()
+        carregarTrabalhadores()
+      }
+    }
+
+    window.onload = async () => {
+      await carregarObras()
+      await carregarTrabalhadores()
+      document.querySelector('form').addEventListener('submit', salvarTrabalhador)
+    }
+  </script>
+</head>
+<body>
+  <header><h1>Trabalhadores</h1></header>
+  <main>
+    <form>
+      <input id="nome" placeholder="Nome do trabalhador" required />
+      <select id="obra_id" required></select>
+      <button>Salvar</button>
+    </form>
+
+    <table>
+      <thead><tr><th>Nome</th><th>Obra</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </main>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Obras</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module">
+    import { supabase } from './app.js'
+
+    async function carregarObras() {
+      const { data, error } = await supabase.from('obras').select('*').order('criado_em', { ascending: false })
+      if (error) console.error(error)
+      const tbody = document.querySelector('tbody')
+      tbody.innerHTML = data.map(o => `<tr><td>${o.nome}</td><td>${o.local}</td></tr>`).join('')
+    }
+
+    async function salvarObra(e) {
+      e.preventDefault()
+      const nome = document.getElementById('nome').value
+      const local = document.getElementById('local').value
+      const { error } = await supabase.from('obras').insert([{ nome, local }])
+      if (error) alert('Erro: ' + error.message)
+      else {
+        e.target.reset()
+        carregarObras()
+      }
+    }
+
+    window.onload = () => {
+      document.querySelector('form').addEventListener('submit', salvarObra)
+      carregarObras()
+    }
+  </script>
+</head>
+<body>
+  <header><h1>Obras</h1></header>
+  <main>
+    <form>
+      <input id="nome" placeholder="Nome da obra" required />
+      <input id="local" placeholder="Local" required />
+      <button>Salvar</button>
+    </form>
+
+    <table>
+      <thead><tr><th>Nome</th><th>Local</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </main>
+</body>
+</html>

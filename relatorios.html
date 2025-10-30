@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Relatórios</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module">
+    import { supabase } from './app.js'
+    import { exportarCSV } from './util.js'
+
+    async function gerarRelatorio() {
+      const data = document.getElementById('data').value
+      const { data: registros } = await supabase
+        .from('presencas')
+        .select('data, refeicao, presente, trabalhadores(nome)')
+        .eq('data', data)
+      const tbody = document.querySelector('tbody')
+      tbody.innerHTML = registros.map(r =>
+        `<tr><td>${r.trabalhadores.nome}</td><td>${r.refeicao}</td><td>${r.presente ? 'Sim' : 'Não'}</td></tr>`).join('')
+      window._dadosRelatorio = registros
+    }
+
+    function exportar() {
+      if (window._dadosRelatorio) exportarCSV(window._dadosRelatorio)
+    }
+
+    window.onload = () => {
+      document.getElementById('gerar').onclick = gerarRelatorio
+      document.getElementById('exportar').onclick = exportar
+    }
+  </script>
+</head>
+<body>
+  <header><h1>Relatórios</h1></header>
+  <main>
+    <label>Data: <input id="data" type="date" /></label>
+    <button id="gerar">Gerar</button>
+    <button id="exportar">Exportar CSV</button>
+
+    <table>
+      <thead><tr><th>Trabalhador</th><th>Refeição</th><th>Presente</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </main>
+</body>
+</html>
